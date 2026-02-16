@@ -1,8 +1,9 @@
 <?php
 require_once ROOT . "/app/helpers/session.php";
+require_once ROOT."/app/helpers/auth.php";
 
 if (!isLogged() || !user()['admin']) {
-    die("Acesso restrito");
+    requireLogin();
 }
 ?>
 

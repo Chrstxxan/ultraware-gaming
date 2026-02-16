@@ -29,8 +29,6 @@ case "login":
         ===================================== */
         if(isset($_SESSION['pending_action'])){
 
-            require_once __DIR__."/app/helpers/cart.php";
-
             $pending = $_SESSION['pending_action'];
 
             if(($pending['type'] ?? null) === 'add_to_cart'){
@@ -247,5 +245,81 @@ case "remove_from_cart":
     echo "ok";
     exit;
 break;
+
+
+
+case "create_order":
+
+require_once __DIR__."/app/helpers/auth.php";
+requireLogin();
+
+$pdo->beginTransaction();
+
+$userId = $_SESSION['user']['id'];
+
+/* cria pedido */
+$stmt=$pdo->prepare("
+INSERT INTO orders (user_id,subtotal,shipping,total,payment_status)
+VALUES (?,0,0,0,'pending')
+");
+$stmt->execute([$userId]);
+
+$orderId=$pdo->lastInsertId();
+
+/* copia itens */
+$stmt=$pdo->prepare("
+SELECT variant_id,quantity,preco
+FROM cart_items ci
+JOIN product_variants v ON v.id=ci.variant_id
+WHERE user_id=?
+");
+$stmt->execute([$userId]);
+$cart=$stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$subtotal=0;
+
+foreach($cart as $item){
+
+    $line=$item['preco']*$item['quantity'];
+    $subtotal+=$line;
+
+    $stmt=$pdo->prepare("
+    INSERT INTO order_items(order_id,variant_id,quantity,price)
+    VALUES(?,?,?,?)
+    ");
+    $stmt->execute([$orderId,$item['variant_id'],$item['quantity'],$item['preco']]);
+}
+
+/* salva endereço */
+$stmt=$pdo->prepare("
+INSERT INTO order_addresses
+(order_id,nome,telefone,cep,rua,numero,bairro,cidade,estado)
+VALUES(?,?,?,?,?,?,?,?,?)
+");
+$stmt->execute([
+$orderId,
+$_POST['nome'],
+$_POST['telefone'],
+$_POST['cep'],
+$_POST['rua'],
+$_POST['numero'],
+$_POST['bairro'],
+$_POST['cidade'],
+$_POST['estado']
+]);
+
+/* atualiza total */
+$stmt=$pdo->prepare("
+UPDATE orders SET subtotal=?,total=? WHERE id=?
+");
+$stmt->execute([$subtotal,$subtotal,$orderId]);
+
+/* limpa carrinho */
+$pdo->prepare("DELETE FROM cart_items WHERE user_id=?")->execute([$userId]);
+
+$pdo->commit();
+
+header("Location: order_success.php?id=".$orderId);
+exit;
 
 }

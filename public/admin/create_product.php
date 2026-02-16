@@ -2,9 +2,10 @@
 require_once "../../app/config/path.php";
 require_once ROOT . "/app/config/database.php";
 require_once ROOT . "/app/helpers/session.php";
+require_once ROOT."/app/helpers/auth.php";
 
 if (!isLogged() || !user()['admin']) {
-    die("Acesso restrito");
+    requireLogin();
 }
 
 require_once ROOT . "/views/admin/layout.php";

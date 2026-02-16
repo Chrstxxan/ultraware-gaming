@@ -30,13 +30,13 @@ tailwind.config = {
 
 </head>
 
-<body class="bg-zinc-950 text-white pt-28">
+<body class="bg-zinc-950 text-white pt-[110px] md:pt-28">
 
 <!-- NAVBAR FLUTUANTE -->
 <header class="fixed top-5 left-1/2 -translate-x-1/2 z-50 w-full flex justify-center pointer-events-none">
 
     <div class="pointer-events-auto
-    w-[92%] max-w-5xl
+    w-[92%] max-w-5xl mx-3 md:mx-0
     bg-zinc-900/65 backdrop-blur-3xl
     border border-white/10
     shadow-[0_25px_80px_rgba(0,0,0,0.65)]
@@ -170,6 +170,6 @@ setTimeout(()=>{
 
 <?php endif; ?>
 
-<main class="max-w-7xl mx-auto px-6 py-10">
+<main class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">
 
 
