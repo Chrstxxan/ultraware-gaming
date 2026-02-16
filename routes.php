@@ -2,12 +2,18 @@
 
 require_once __DIR__ . "/app/config/database.php";
 require_once __DIR__ . "/app/helpers/session.php";
+require_once __DIR__ . "/app/helpers/flash.php";
 
 $action = $_GET['action'] ?? null;
 
-if ($action === "login"){
-    $email = $_POST['email'];
-    $senha = $_POST['senha'];
+switch($action){
+
+/* ================= LOGIN ================= */
+
+case "login":
+
+    $email = trim($_POST['email'] ?? '');
+    $senha = trim($_POST['senha'] ?? '');
 
     $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
     $stmt->execute([$email]);
@@ -15,21 +21,112 @@ if ($action === "login"){
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($senha, $user['senha'])){
+
         $_SESSION['user'] = $user;
-        header("Location: /ultraware_gaming/public");
+
+        /* =====================================
+           EXECUTA AÇÃO QUE O USUÁRIO TENTOU FAZER
+        ===================================== */
+        if(isset($_SESSION['pending_action'])){
+
+            require_once __DIR__."/app/helpers/cart.php";
+
+            $pending = $_SESSION['pending_action'];
+
+            if(($pending['type'] ?? null) === 'add_to_cart'){
+                $variantId = $pending['data']['variant_id'] ?? null;
+
+                if($variantId){
+                    addToCart($variantId, 1);
+                    flash('success','Produto adicionado ao carrinho!');
+                }
+            }
+
+            unset($_SESSION['pending_action']);
+        }
+
+        /* redireciona para onde estava */
+        $redirect = $_SESSION['redirect_after_login'] ?? "/ultraware_gaming/public";
+        unset($_SESSION['redirect_after_login']);
+
+        header("Location: $redirect");
         exit;
-    }else {
-        echo "Login invalido";
+
+    }else{
+        flash('error',"Email ou senha inválidos");
+        header("Location: /ultraware_gaming/public/login.php");
+        exit;
     }
-}
 
-if ($action === "store_product") {
+break;
 
-    if (!$_SESSION['user']['admin']) {
+
+/* ================= REGISTER ================= */
+
+case "register":
+
+    $nome  = trim($_POST['nome'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $senha = $_POST['senha'] ?? '';
+    $confirmar = $_POST['confirmar'] ?? '';
+
+    if($senha !== $confirmar){
+        flash('error',"As senhas não coincidem, verifique e tente novamente.");
+        header("Location: ".$_SERVER['HTTP_REFERER']);
+        exit;
+    }
+
+    // verifica se email já existe
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email=?");
+    $stmt->execute([$email]);
+
+    if($stmt->fetch()){
+        flash('error',"Este email já está cadastrado");
+        header("Location: ".$_SERVER['HTTP_REFERER']);
+        exit;
+    }
+
+    $hash = password_hash($senha,PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare("
+        INSERT INTO users (nome,email,senha,admin,criado_em)
+        VALUES (?,?,?,0,NOW())
+    ");
+    $stmt->execute([$nome,$email,$hash]);
+
+    // login automático após cadastro
+    $_SESSION['user'] = [
+        'id'=>$pdo->lastInsertId(),
+        'nome'=>$nome,
+        'email'=>$email,
+        'admin'=>0
+    ];
+
+    $redirect = $_SESSION['redirect_after_login'] ?? "/ultraware_gaming/public";
+    unset($_SESSION['redirect_after_login']);
+
+    header("Location: $redirect");
+    exit;
+break;
+
+
+/* ================= LOGOUT ================= */
+
+case "logout":
+    session_destroy();
+    header("Location: /ultraware_gaming/public");
+    exit;
+break;
+
+
+/* ================= CRIAR PRODUTO (ADMIN) ================= */
+
+case "store_product":
+
+    if (!isset($_SESSION['user']) || !$_SESSION['user']['admin']){
         die("Acesso negado");
     }
 
-    // 1️⃣ cria produto base
     $stmt = $pdo->prepare("
         INSERT INTO products (nome, descricao, categoria)
         VALUES (?, ?, ?)
@@ -43,13 +140,9 @@ if ($action === "store_product") {
 
     $productId = $pdo->lastInsertId();
 
-
-    // 2️⃣ percorre todas as variações
     if(!empty($_POST['variants'])){
+        foreach ($_POST['variants'] as $index => $variant){
 
-        foreach ($_POST['variants'] as $index => $variant) {
-
-            // ignora variação vazia
             if(empty($variant['nome'])) continue;
 
             $stmt = $pdo->prepare("
@@ -66,18 +159,15 @@ if ($action === "store_product") {
 
             $variantId = $pdo->lastInsertId();
 
-
-            // 3️⃣ upload das imagens da variação
             $inputName = "variant_images_" . $index;
 
             if (!empty($_FILES[$inputName]['name'][0])) {
-
-                foreach ($_FILES[$inputName]['tmp_name'] as $k => $tmp) {
+                foreach ($_FILES[$inputName]['tmp_name'] as $k => $tmp){
 
                     if(!$tmp) continue;
 
                     $ext = pathinfo($_FILES[$inputName]['name'][$k], PATHINFO_EXTENSION);
-                    $name = uniqid() . "." . $ext;
+                    $name = uniqid().".".$ext;
 
                     move_uploaded_file($tmp, __DIR__."/public/uploads/".$name);
 
@@ -94,10 +184,68 @@ if ($action === "store_product") {
 
     header("Location: /ultraware_gaming/public/admin/create_product.php?success=1");
     exit;
-}
+break;
 
-if ($action === "logout") {
-    session_destroy();
-    header("Location: /ultraware_gaming/public");
+
+/* ================= CARRINHO ================= */
+
+case "add_to_cart":
+
+    require_once __DIR__."/app/helpers/auth.php";
+    requireLogin();
+
+    require_once __DIR__."/app/helpers/cart_db.php";
+
+    $variant = $_POST['variant_id'] ?? null;
+
+    if($variant){
+        addToCartDB($pdo,$_SESSION['user']['id'],$variant);
+
+        echo json_encode([
+            "status"=>"ok",
+            "count"=>cartCountDB($pdo,$_SESSION['user']['id'])
+        ]);
+    }
     exit;
+break;
+
+
+
+case "update_cart":
+
+    require_once __DIR__."/app/helpers/auth.php";
+    requireLogin();
+
+    require_once __DIR__."/app/helpers/cart_db.php";
+
+    updateCartDB(
+        $pdo,
+        $_SESSION['user']['id'],
+        $_POST['variant_id'],
+        $_POST['delta']
+    );
+
+    echo "ok";
+    exit;
+break;
+
+
+
+case "remove_from_cart":
+
+    require_once __DIR__."/app/helpers/auth.php";
+    requireLogin();
+
+    require_once __DIR__."/app/helpers/cart_db.php";
+
+    removeFromCartDB(
+        $pdo,
+        $_SESSION['user']['id'],
+        $_POST['variant_id']
+    );
+
+    echo "ok";
+    exit;
+break;
+
 }

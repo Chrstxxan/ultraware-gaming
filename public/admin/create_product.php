@@ -7,7 +7,7 @@ if (!isLogged() || !user()['admin']) {
     die("Acesso restrito");
 }
 
-require_once ROOT . "/views/layout/header.php";
+require_once ROOT . "/views/admin/layout.php";
 ?>
 
 <h2 class="text-2xl font-semibold mb-6">Cadastrar Produto</h2>
@@ -22,13 +22,13 @@ require_once ROOT . "/views/layout/header.php";
 
     <!-- DADOS DO PRODUTO -->
     <input name="nome" placeholder="Nome do produto"
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2">
+    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
     <textarea name="descricao" placeholder="Descrição completa"
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2"></textarea>
+    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2"></textarea>
 
     <input name="categoria" placeholder="Categoria"
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2">
+    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
 
     <!-- VARIAÇÕES -->
@@ -37,14 +37,12 @@ require_once ROOT . "/views/layout/header.php";
     <div id="variants" class="space-y-6"></div>
 
     <button type="button"
-    onclick="addVariant()"
-    class="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg">
+    class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-uw transition">
         + Adicionar variação
     </button>
 
-
     <!-- BOTÃO -->
-    <button class="bg-primary hover:bg-blue-500 transition px-6 py-3 rounded-lg font-semibold">
+    <button class="bg-primary hover:bg-blue-500 text-white px-6 py-3 rounded-uw font-semibold transition">
         Salvar Produto
     </button>
 
@@ -59,31 +57,31 @@ function addVariant(){
     const container = document.getElementById('variants');
 
     container.insertAdjacentHTML('beforeend', `
-        <div class="border border-zinc-800 rounded-xl p-4 space-y-4">
+        <div class="border border-zinc-800 rounded-uw p-5 space-y-5 bg-zinc-900/40">
 
             <input name="variants[${variantIndex}][nome]"
             placeholder="Ex: Preto / M / 128GB"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2">
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
             <input type="number" step="0.01"
             name="variants[${variantIndex}][preco]"
             placeholder="Preço"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2">
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
             <input type="number"
             name="variants[${variantIndex}][estoque]"
             placeholder="Estoque"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2">
+            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
             <div>
                 <label class="text-sm text-zinc-400">Imagens da variação</label>
 
-                <div class="border-2 border-dashed border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-primary transition"
-                    onclick="document.getElementById('input_${variantIndex}').click()">
+                <label class="block border border-dashed border-zinc-700 rounded-uw p-8 text-center cursor-pointer hover:border-primary hover:bg-white/5 transition">
 
-                    <p class="text-zinc-400 text-sm">
-                        Clique para selecionar imagens
-                    </p>
+                    <div class="space-y-2">
+                        <p class="text-zinc-300 text-sm font-medium">Selecionar imagens da variação</p>
+                        <p class="text-xs text-zinc-500">PNG, JPG ou WEBP</p>
+                    </div>
 
                     <input id="input_${variantIndex}"
                     type="file"
@@ -92,7 +90,8 @@ function addVariant(){
                     accept="image/*"
                     class="hidden"
                     onchange="previewImages(event, ${variantIndex})">
-                </div>
+
+                </label>
 
                 <div id="preview_${variantIndex}" class="flex flex-wrap gap-3 mt-4"></div>
             </div>
@@ -123,7 +122,7 @@ function previewImages(event, index){
 
             div.innerHTML = `
                 <img src="${e.target.result}"
-                class="h-24 w-24 object-cover rounded-lg border border-zinc-700">
+                class="h-24 w-24 object-cover rounded-uw border border-zinc-700">
 
                 <button type="button"
                 onclick="removeImage(${index}, ${i})"
