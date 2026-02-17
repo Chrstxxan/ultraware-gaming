@@ -251,75 +251,204 @@ break;
 case "create_order":
 
 require_once __DIR__."/app/helpers/auth.php";
+require_once __DIR__."/app/helpers/shipping.php";
+require_once __DIR__."/app/helpers/mercadopago.php";
 requireLogin();
+
+/* ================= PEGAR DADOS DO CHECKOUT ================= */
+
+$dados = json_decode($_POST['dados'] ?? '{}', true);
+
+if(!$dados){
+    flash('error','Endereço inválido');
+    header("Location: /ultraware_gaming/public/checkout.php");
+    exit;
+}
+
+/* ================= SANITIZAÇÃO ================= */
+
+$dados['telefone'] = preg_replace('/\D/','',$dados['telefone'] ?? '');
+$dados['cep']      = preg_replace('/\D/','',$dados['cep'] ?? '');
+$dados['numero']   = trim($dados['numero'] ?? '');
+$dados['complemento'] = trim($dados['complemento'] ?? '') ?: null;
+
+/* valida obrigatório */
+$required=['nome','telefone','cep','rua','numero','bairro','cidade','estado'];
+
+foreach($required as $f){
+    if(empty($dados[$f])){
+        flash('error','Preencha todos os campos obrigatórios');
+        header("Location: /ultraware_gaming/public/checkout.php");
+        exit;
+    }
+}
 
 $pdo->beginTransaction();
 
-$userId = $_SESSION['user']['id'];
+try{
 
-/* cria pedido */
+$userId=$_SESSION['user']['id'];
+
+/* ================= PEGAR CARRINHO ================= */
+
 $stmt=$pdo->prepare("
-INSERT INTO orders (user_id,subtotal,shipping,total,payment_status)
-VALUES (?,0,0,0,'pending')
-");
-$stmt->execute([$userId]);
-
-$orderId=$pdo->lastInsertId();
-
-/* copia itens */
-$stmt=$pdo->prepare("
-SELECT variant_id,quantity,preco
+SELECT ci.variant_id,ci.quantity,v.preco
 FROM cart_items ci
 JOIN product_variants v ON v.id=ci.variant_id
-WHERE user_id=?
+WHERE ci.user_id=?
 ");
 $stmt->execute([$userId]);
 $cart=$stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$subtotal=0;
-
-foreach($cart as $item){
-
-    $line=$item['preco']*$item['quantity'];
-    $subtotal+=$line;
-
-    $stmt=$pdo->prepare("
-    INSERT INTO order_items(order_id,variant_id,quantity,price)
-    VALUES(?,?,?,?)
-    ");
-    $stmt->execute([$orderId,$item['variant_id'],$item['quantity'],$item['preco']]);
+if(!$cart){
+    throw new Exception("Carrinho vazio");
 }
 
-/* salva endereço */
+/* ================= CALCULAR SUBTOTAL ================= */
+
+$subtotal=0;
+foreach($cart as $item){
+    $subtotal+=$item['preco']*$item['quantity'];
+}
+
+/* ================= FRETE REAL (ANTI-FRAUDE) ================= */
+
+$shipping = calculateShipping($dados['cep']);
+
+if(isset($shipping['erro'])){
+    throw new Exception("Falha ao calcular frete");
+}
+
+$total = $subtotal + $shipping['valor'];
+
+/* ================= CRIAR PEDIDO ================= */
+
+$stmt=$pdo->prepare("
+INSERT INTO orders(user_id,situacao,subtotal,shipping,total,payment_status,created_at)
+VALUES(?, 'novo', ?, ?, ?, 'pending', NOW())
+");
+$stmt->execute([
+    $userId,
+    $subtotal,
+    $shipping['valor'],
+    $total
+]);
+
+$orderId=$pdo->lastInsertId();
+
+/* ================= ITENS ================= */
+
+$stmtItem=$pdo->prepare("
+INSERT INTO order_items(order_id,variant_id,qtd,preco_unitario)
+VALUES(?,?,?,?)
+");
+
+foreach($cart as $item){
+    $stmtItem->execute([
+        $orderId,
+        $item['variant_id'],
+        $item['quantity'],
+        $item['preco']
+    ]);
+}
+
+/* ================= ENDEREÇO ================= */
+
 $stmt=$pdo->prepare("
 INSERT INTO order_addresses
-(order_id,nome,telefone,cep,rua,numero,bairro,cidade,estado)
-VALUES(?,?,?,?,?,?,?,?,?)
+(order_id,nome,telefone,cep,rua,numero,complemento,bairro,cidade,estado)
+VALUES(?,?,?,?,?,?,?,?,?,?)
 ");
 $stmt->execute([
 $orderId,
-$_POST['nome'],
-$_POST['telefone'],
-$_POST['cep'],
-$_POST['rua'],
-$_POST['numero'],
-$_POST['bairro'],
-$_POST['cidade'],
-$_POST['estado']
+$dados['nome'],
+$dados['telefone'],
+$dados['cep'],
+$dados['rua'],
+$dados['numero'],
+$dados['complemento'],
+$dados['bairro'],
+$dados['cidade'],
+$dados['estado']
 ]);
 
-/* atualiza total */
-$stmt=$pdo->prepare("
-UPDATE orders SET subtotal=?,total=? WHERE id=?
-");
-$stmt->execute([$subtotal,$subtotal,$orderId]);
+/* ================= GERAR PAGAMENTO ================= */
 
-/* limpa carrinho */
+$pref = criarPreferenciaMP($orderId, $total);
+
+if(empty($pref['id']) || empty($pref['init_point'])){
+    throw new Exception("Erro ao criar pagamento");
+}
+
+/* salva id do pagamento externo */
+$pdo->prepare("UPDATE orders SET mp_preference_id=? WHERE id=?")
+    ->execute([$pref['id'],$orderId]);
+
+/* ================= LIMPA CARRINHO ================= */
+
 $pdo->prepare("DELETE FROM cart_items WHERE user_id=?")->execute([$userId]);
 
 $pdo->commit();
 
-header("Location: order_success.php?id=".$orderId);
+/* ================= REDIRECT PARA MERCADO PAGO ================= */
+
+header("Location: ".$pref['init_point']);
+exit;
+
+}catch(Exception $e){
+
+$pdo->rollBack();
+
+flash('error','Erro ao iniciar pagamento');
+header("Location: /ultraware_gaming/public/checkout.php");
+exit;
+
+}
+
+
+
+case "calcular_frete":
+
+    header('Content-Type: application/json');
+
+    try{
+
+        require_once __DIR__."/app/helpers/auth.php";
+        requireLogin();
+
+        require_once __DIR__."/app/helpers/shipping.php";
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if(!$data || empty($data['cep'])){
+            echo json_encode(["erro"=>"cep_invalido"]);
+            exit;
+        }
+
+        $cep = preg_replace('/[^0-9]/','',$data['cep']);
+
+        $frete = calculateShipping($cep);
+
+        if(!$frete){
+            echo json_encode(["erro"=>"frete_nao_disponivel"]);
+            exit;
+        }
+
+        echo json_encode([
+            "nome"=>$frete['nome'],
+            "valor"=>(float)$frete['valor'],
+            "prazo"=>(int)$frete['prazo']
+        ]);
+
+    }catch(Throwable $e){
+
+        echo json_encode([
+            "erro"=>"internal_error",
+            "debug"=>$e->getMessage()
+        ]);
+
+    }
+
 exit;
 
 }
