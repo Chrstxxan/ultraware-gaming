@@ -125,19 +125,26 @@ case "store_product":
         die("Acesso negado");
     }
 
+    /* valida categoria */
+    if(empty($_POST['category_id'])){
+        die("Categoria não informada");
+    }
+
+    /* cria produto */
     $stmt = $pdo->prepare("
-        INSERT INTO products (nome, descricao, categoria)
+        INSERT INTO products (nome, descricao, category_id)
         VALUES (?, ?, ?)
     ");
 
     $stmt->execute([
         $_POST['nome'],
         $_POST['descricao'],
-        $_POST['categoria']
+        $_POST['category_id']
     ]);
 
     $productId = $pdo->lastInsertId();
 
+    /* cria variações */
     if(!empty($_POST['variants'])){
         foreach ($_POST['variants'] as $index => $variant){
 
@@ -157,6 +164,7 @@ case "store_product":
 
             $variantId = $pdo->lastInsertId();
 
+            /* upload imagens */
             $inputName = "variant_images_" . $index;
 
             if (!empty($_FILES[$inputName]['name'][0])) {

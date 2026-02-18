@@ -1,6 +1,11 @@
 <?php
 require_once ROOT . "/app/helpers/session.php";
-require_once ROOT."/app/helpers/flash.php"; 
+require_once ROOT."/app/helpers/flash.php";
+require_once ROOT."/app/config/database.php";
+
+/* CATEGORIAS PARA NAVBAR */
+$stmt = $pdo->query("SELECT id,nome FROM categories ORDER BY ordem,nome");
+$navCategories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -28,6 +33,15 @@ tailwind.config = {
 }
 </script>
 
+<!-- FIX DROPDOWN HOVER -->
+<style>
+.nav-open > .dropdown-menu{
+    opacity:1!important;
+    transform:translateY(0)!important;
+    pointer-events:auto!important;
+}
+</style>
+
 </head>
 
 <body class="bg-zinc-950 text-white pt-[110px] md:pt-28">
@@ -44,10 +58,58 @@ tailwind.config = {
 
         <div class="px-6 py-3 flex items-center justify-between">
 
-            <!-- LOGO -->
-            <a href="/ultraware_gaming/public/" class="flex items-center gap-3">
-                <img src="/ultraware_gaming/public/assets/img/logo.png" class="h-8 opacity-90">
-            </a>
+            <!-- ESQUERDA -->
+            <div class="flex items-center gap-4">
+
+                <!-- CATEGORIAS -->
+                <div class="relative hidden md:block"
+                onmouseenter="this.classList.add('nav-open')"
+                onmouseleave="this.classList.remove('nav-open')">
+
+                    <button class="px-4 py-2 rounded-full hover:bg-white/10 transition flex items-center gap-2">
+                        Categorias
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-70"
+                        viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.937a.75.75 0 111.08 1.04l-4.24 4.5a.75.75 0 01-1.08 0l-4.24-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+
+                    <!-- DROPDOWN -->
+                    <div class="
+                        dropdown-menu
+                        absolute top-full -left-2 pt-3 px-2
+                        opacity-0 translate-y-2 pointer-events-none
+                        transition duration-200
+                    ">
+
+                        <!-- ZONA DE SEGURANÇA DO MOUSE -->
+                        <div class="absolute -top-4 left-0 w-full h-4"></div>
+
+                        <div class="
+                            w-64 p-3 rounded-uw
+                            bg-zinc-900/70 backdrop-blur-3xl
+                            border border-white/10
+                            shadow-[0_25px_80px_rgba(0,0,0,0.65)]
+                        ">
+
+                            <?php foreach($navCategories as $cat): ?>
+                                <a href="/ultraware_gaming/public/?categoria=<?= $cat['id'] ?>"
+                                class="block px-4 py-2 rounded-xl hover:bg-white/10 transition">
+                                    <?= htmlspecialchars($cat['nome']) ?>
+                                </a>
+                            <?php endforeach; ?>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- LOGO -->
+                <a href="/ultraware_gaming/public/" class="flex items-center gap-3">
+                    <img src="/ultraware_gaming/public/assets/img/logo.png" class="h-8 opacity-90">
+                </a>
+
+            </div>
 
             <!-- BUSCA -->
             <div class="hidden md:flex flex-1 mx-8">
@@ -67,7 +129,7 @@ tailwind.config = {
                         Conta
                     </a>
 
-                    <a href="/ultraware_gaming/public/orders.php"
+                    <a href="/ultraware_gaming/public/meus_pedidos.php"
                     class="px-3 py-1.5 rounded-full hover:bg-white/10 transition">
                         Pedidos
                     </a>
@@ -88,14 +150,11 @@ tailwind.config = {
 
                 <!-- CARRINHO -->
                 <?php
-                require_once ROOT."/app/config/database.php";
                 require_once ROOT."/app/helpers/cart_db.php";
 
-                $count = 0;
-
-                if(isLogged()){
-                    $count = cartCountDB($pdo, $_SESSION['user']['id']);
-                }
+                $count = isLogged()
+                    ? cartCountDB($pdo,$_SESSION['user']['id'])
+                    : 0;
                 ?>
 
                 <a href="/ultraware_gaming/public/cart.php"
@@ -107,37 +166,10 @@ tailwind.config = {
                         d="M2.25 3h1.386a1.125 1.125 0 011.11.894l.383 1.916m0 0L6.75 14.25a2.25 2.25 0 002.205 1.875h7.59a2.25 2.25 0 002.205-1.875l1.495-7.44a1.125 1.125 0 00-1.11-1.341H5.129zM9 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm7.5 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>
                     </svg>
 
-                    <?php $count = isLogged()
-                        ? cartCountDB($pdo,$_SESSION['user']['id'])
-                        : 0;
-                    ?>
-
                     <span id="cartCount"
                     class="absolute -top-1 -right-1 bg-primary text-[10px] px-1.5 py-0.5 rounded-full <?= $count ? '' : 'hidden' ?>">
                         <?= $count ?>
                     </span>
-
-                    <script>
-                        function updateCartBadge(count){
-
-                            const badge = document.getElementById("cartCount");
-
-                            if(!badge) return;
-
-                            badge.innerText = count;
-
-                            if(count>0) badge.classList.remove("hidden");
-
-                            badge.animate([
-                                {transform:"scale(1)"},
-                                {transform:"scale(1.35)"},
-                                {transform:"scale(1)"}
-                            ],{
-                                duration:300,
-                                easing:"ease"
-                            });
-                        }
-                        </script>
 
                 </a>
 
@@ -147,6 +179,7 @@ tailwind.config = {
     </div>
 
 </header>
+
 <?php if($f = getFlash()): ?>
 
 <div id="toast" class="fixed top-28 left-1/2 -translate-x-1/2 z-[999]">
@@ -171,5 +204,3 @@ setTimeout(()=>{
 <?php endif; ?>
 
 <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">
-
-

@@ -2,9 +2,9 @@
 
 class Product {
 
-    public static function all($pdo) {
+    public static function all($pdo, $categoryId = null) {
 
-        $stmt = $pdo->query("
+        $sql = "
             SELECT 
                 p.id,
                 p.nome,
@@ -18,9 +18,22 @@ class Product {
                 ) as img
             FROM products p
             JOIN product_variants v ON v.product_id = p.id
+        ";
+
+        $params = [];
+
+        if($categoryId){
+            $sql .= " WHERE p.category_id = ? ";
+            $params[] = $categoryId;
+        }
+
+        $sql .= "
             GROUP BY p.id
             ORDER BY p.id DESC
-        ");
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

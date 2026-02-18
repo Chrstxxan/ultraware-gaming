@@ -3,7 +3,7 @@
 
 <h2 class="text-2xl font-semibold mb-8">Produtos</h2>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
 
 <?php foreach ($products as $p): ?>
 
@@ -11,7 +11,7 @@
        class="block group">
 
         <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-lg
-        hover:border-primary transition">
+        hover:border-primary transition h-full flex flex-col">
 
             <?php if($p['img']): ?>
                 <img src="/ultraware_gaming/public/uploads/<?= $p['img'] ?>"
@@ -20,11 +20,11 @@
 
             <h3 class="text-lg font-semibold"><?= $p['nome'] ?></h3>
 
-            <p class="text-zinc-400 text-sm mt-1 mb-3">
+            <p class="text-zinc-400 text-sm mt-1 mb-3 line-clamp-3 min-h-[60px]">
                 <?= resumo($p['descricao'], 110) ?>
             </p>
 
-            <div class="flex justify-between items-center mt-4">
+            <div class="flex justify-between items-center mt-auto">
 
                 <span class="text-primary text-xl font-bold">
                     R$ <?= number_format($p['preco'], 2, ',', '.') ?>

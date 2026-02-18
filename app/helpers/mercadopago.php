@@ -42,7 +42,18 @@ function criarPreferenciaMP($orderId, $total){
     ]);
 
     $res = curl_exec($ch);
+
+    if($res === false){
+        throw new Exception("Erro ao conectar Mercado Pago: ".curl_error($ch));
+    }
+
     curl_close($ch);
 
-    return json_decode($res,true);
+    $json = json_decode($res,true);
+
+    if(empty($json['id'])){
+        throw new Exception("Erro Mercado Pago: ".($json['message'] ?? 'sem resposta'));
+    }
+
+    return $json;
 }

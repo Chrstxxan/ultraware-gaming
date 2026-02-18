@@ -4,6 +4,7 @@ require_once ROOT . "/app/config/database.php";
 require_once ROOT . "/app/helpers/session.php";
 require_once ROOT . "/app/models/Product.php";
 
-$products = Product::all($pdo);
+$category = $_GET['categoria'] ?? null;
+$products = Product::all($pdo, $category);
 
 require_once ROOT . "/views/products/list.php";

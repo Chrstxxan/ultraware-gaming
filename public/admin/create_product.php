@@ -8,6 +8,10 @@ if (!isLogged() || !user()['admin']) {
     requireLogin();
 }
 
+/* BUSCA CATEGORIAS */
+$stmt = $pdo->query("SELECT id,nome FROM categories ORDER BY nome ASC");
+$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 require_once ROOT . "/views/admin/layout.php";
 ?>
 
@@ -17,19 +21,32 @@ require_once ROOT . "/views/admin/layout.php";
 <?php require_once ROOT . "/views/components/toast.php"; ?>
 <?php endif; ?>
 
-
 <form method="POST" action="/ultraware_gaming/routes.php?action=store_product"
       enctype="multipart/form-data" class="space-y-6">
 
     <!-- DADOS DO PRODUTO -->
     <input name="nome" placeholder="Nome do produto"
+    required
     class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
 
     <textarea name="descricao" placeholder="Descrição completa"
+    required
     class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2"></textarea>
 
-    <input name="categoria" placeholder="Categoria"
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
+    <!-- SELECT DE CATEGORIA -->
+    <select name="category_id" required
+    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2
+    focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+
+        <option value="">Selecione a categoria</option>
+
+        <?php foreach($categories as $c): ?>
+            <option value="<?= $c['id'] ?>">
+                <?= htmlspecialchars($c['nome']) ?>
+            </option>
+        <?php endforeach; ?>
+
+    </select>
 
 
     <!-- VARIAÇÕES -->
@@ -38,6 +55,7 @@ require_once ROOT . "/views/admin/layout.php";
     <div id="variants" class="space-y-6"></div>
 
     <button type="button"
+    onclick="addVariant()"
     class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-uw transition">
         + Adicionar variação
     </button>
