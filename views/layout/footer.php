@@ -33,5 +33,13 @@ function showToast(message,type="success"){
 }
 </script>
 
+<script>
+function toggleCategoryPanel(){
+    const panel = document.getElementById('catPanel');
+    if(!panel) return;
+    panel.classList.toggle('hidden');
+}
+</script>
+
 </body>
 </html>
