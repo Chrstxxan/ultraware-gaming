@@ -22,6 +22,7 @@
     <title>UltraWare Gaming</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
     tailwind.config = {
@@ -57,6 +58,7 @@
         background:rgba(59,130,246,.25);
         transform:translateY(-2px) scale(1.05);
     }
+    
     </style>
     </head>
 
@@ -107,12 +109,22 @@
             </div>
 
             <!-- busca -->
-            <div class="flex justify-self-end">
+            <div class="flex items-center gap-3 justify-self-end">
+
                 <div class="w-[260px]">
                     <input type="text" placeholder="Buscar produtos..."
                     class="w-full bg-black/30 border border-white/10 rounded-full px-4 py-1.5
                     focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
                 </div>
+
+                <?php if(!isLogged()): ?>
+                    <a href="/ultraware_gaming/public/login.php"
+                    class="bg-primary hover:bg-blue-500 px-5 py-1.5 rounded-full
+                    shadow-[0_10px_30px_rgba(59,130,246,.45)] transition">
+                        Entrar
+                    </a>
+                <?php endif; ?>
+
             </div>
 
         </div>
@@ -127,7 +139,14 @@
                 <img src="/ultraware_gaming/public/assets/img/logo.png" class="h-8">
             </a>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+
+                <?php if(!isLogged()): ?>
+                    <a href="/ultraware_gaming/public/login.php"
+                    class="bg-primary px-4 py-1 rounded-full text-sm shadow-lg">
+                        Entrar
+                    </a>
+                <?php endif; ?>
 
                 <!-- busca -->
                 <button onclick="toggleSearchMobile()" class="p-2 rounded-full hover:bg-white/10">
@@ -149,13 +168,11 @@
 
 
         <!-- ================= DOCK ================= -->
-        <div class="absolute right-0 top-[58    px] md:-right-14 md:top-[-7px]
-                flex flex-col items-end gap-2 pointer-events-none">
+        <div class="absolute right-0 top-[58px] md:-right-14 md:top-[-7px]
+                flex flex-col items-end gap-2">
 
             <!-- carrinho -->
-            <a href="/ultraware_gaming/public/cart.php"
-            class="bg-zinc-900/80 backdrop-blur-xl border border-white/10
-                rounded-2xl w-11 h-11 flex items-center justify-center relative hover:bg-white/10 transition">
+            <a href="/ultraware_gaming/public/cart.php" class="dock-btn relative">
 
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6"
                 fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
@@ -165,8 +182,9 @@
                     <circle cx="18" cy="20" r="1.25"/>
                 </svg>
 
-                <span class="absolute -top-1 -right-1 bg-primary text-[10px] px-1.5 rounded-full <?= $count ? '' : 'hidden' ?>">
-                    <?= $count ?>
+                <span id="cart-count"
+                class="absolute -top-1 -right-1 bg-primary text-[10px] px-1.5 rounded-full <?= $count ? '' : 'hidden' ?>">
+                <?= $count ?>
                 </span>
             </a>
 
@@ -222,7 +240,7 @@
 
     <!-- MOBILE MENU -->
     <div id="mobileMenu"
-    class="md:hidden fixed inset-0 z-[70] pointer-events-none">
+    class="md:hidden fixed inset-0 z-[70] hidden">
 
         <!-- backdrop -->
         <div id="menuBg"
@@ -262,16 +280,18 @@
         const bg = document.getElementById('menuBg');
         const wrapper = document.getElementById('mobileMenu');
 
-        const isOpen = !panel.classList.contains('translate-x-full');
+        const opening = wrapper.classList.contains('hidden');
 
-        if(isOpen){
+        if(opening){
+            wrapper.classList.remove('hidden');
+            requestAnimationFrame(()=>{
+                panel.classList.remove('translate-x-full');
+                bg.classList.remove('opacity-0');
+            });
+        }else{
             panel.classList.add('translate-x-full');
             bg.classList.add('opacity-0');
-            setTimeout(()=>wrapper.classList.add('pointer-events-none'),300);
-        }else{
-            wrapper.classList.remove('pointer-events-none');
-            panel.classList.remove('translate-x-full');
-            bg.classList.remove('opacity-0');
+            setTimeout(()=>wrapper.classList.add('hidden'),300);
         }
     }
 
@@ -279,5 +299,24 @@
         document.getElementById('mobileSearch')?.classList.toggle('hidden');
     }
     </script>
+
+<script>
+window.updateCartCounter = function(count){
+
+    const badge = document.getElementById("cart-count");
+    if(!badge) return;
+
+    badge.textContent = count;
+
+    if(count > 0)
+        badge.classList.remove("hidden");
+    else
+        badge.classList.add("hidden");
+
+    // animação igual botões dock
+    badge.parentElement.classList.add("scale-110");
+    setTimeout(()=>badge.parentElement.classList.remove("scale-110"),180);
+}
+</script>
 
     <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">

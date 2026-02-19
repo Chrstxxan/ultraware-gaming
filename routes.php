@@ -1,8 +1,10 @@
 <?php
 
-require_once __DIR__ . "/app/config/database.php";
-require_once __DIR__ . "/app/helpers/session.php";
-require_once __DIR__ . "/app/helpers/flash.php";
+require_once __DIR__ . "/app/config/path.php";
+
+require_once ROOT."/app/config/database.php";
+require_once ROOT."/app/helpers/session.php";
+require_once ROOT."/app/helpers/flash.php";
 
 $action = $_GET['action'] ?? null;
 
@@ -112,7 +114,7 @@ break;
 
 case "logout":
     session_destroy();
-    header("Location: /ultraware_gaming/public");
+    header("Location: /ultraware_gaming/public/index.php");
     exit;
 break;
 
@@ -457,6 +459,107 @@ case "calcular_frete":
 
     }
 
+exit;
+
+
+
+case 'update_name':
+
+require_once ROOT."/app/config/database.php";
+require_once ROOT."/app/helpers/session.php";
+
+$id = $_SESSION['user']['id'];
+
+$nome = trim($_POST['nome']);
+$senha = $_POST['senha'];
+
+$stmt = $pdo->prepare("SELECT senha FROM users WHERE id=?");
+$stmt->execute([$id]);
+$user = $stmt->fetch();
+
+if(!$user || !password_verify($senha, $user['senha'])){
+    die("Senha incorreta");
+}
+
+$stmt = $pdo->prepare("UPDATE users SET nome=? WHERE id=?");
+$stmt->execute([$nome,$id]);
+
+$_SESSION['user']['nome']=$nome;
+
+header("Location: /ultraware_gaming/public/account.php");
+exit;
+
+
+
+case 'update_email':
+
+require_once ROOT."/app/config/database.php";
+require_once ROOT."/app/helpers/session.php";
+
+$id = $_SESSION['user']['id'];
+
+$email = trim($_POST['email']);
+$senha = $_POST['senha'];
+
+$stmt = $pdo->prepare("SELECT senha FROM users WHERE id=?");
+$stmt->execute([$id]);
+$user = $stmt->fetch();
+
+if(!$user || !password_verify($senha, $user['senha'])){
+    die("Senha incorreta");
+}
+
+$stmt = $pdo->prepare("UPDATE users SET email=? WHERE id=?");
+$stmt->execute([$email,$id]);
+
+$_SESSION['user']['email']=$email;
+
+header("Location: /ultraware_gaming/public/account.php");
+exit;
+
+
+
+case 'update_password':
+
+require_once ROOT."/app/config/database.php";
+require_once ROOT."/app/helpers/session.php";
+
+$id = $_SESSION['user']['id'];
+
+$atual = $_POST['senha_atual'];
+$nova  = $_POST['nova_senha'];
+
+$stmt = $pdo->prepare("SELECT senha FROM users WHERE id=?");
+$stmt->execute([$id]);
+$user = $stmt->fetch();
+
+if(!$user || !password_verify($atual, $user['senha'])){
+    die("Senha atual incorreta");
+}
+
+$hash = password_hash($nova,PASSWORD_DEFAULT);
+
+$stmt = $pdo->prepare("UPDATE users SET senha=? WHERE id=?");
+$stmt->execute([$hash,$id]);
+
+header("Location: /ultraware_gaming/public/account.php");
+exit;
+
+
+
+case 'delete_account':
+
+require_once ROOT."/app/config/database.php";
+require_once ROOT."/app/helpers/session.php";
+
+$id = $_SESSION['user']['id'];
+
+$stmt=$pdo->prepare("DELETE FROM users WHERE id=?");
+$stmt->execute([$id]);
+
+session_destroy();
+
+header("Location: /ultraware_gaming/public/index.php");
 exit;
 
 }

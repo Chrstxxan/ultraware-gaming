@@ -41,5 +41,64 @@ function toggleCategoryPanel(){
 }
 </script>
 
+<div id="live-toast"
+class="fixed z-[9999]
+left-1/2 -translate-x-1/2 bottom-6
+md:left-auto md:translate-x-0 md:right-6 md:top-6 md:bottom-auto
+opacity-0 pointer-events-none transition-all duration-300">
+
+    <div class="bg-zinc-900 border border-primary text-white
+    px-6 py-4 rounded-2xl shadow-2xl
+    flex items-center gap-4">
+
+        <div class="w-2 h-10 bg-primary rounded-full"></div>
+
+        <div>
+            <p class="font-semibold">Sucesso</p>
+            <p id="toast-text" class="text-sm text-zinc-300"></p>
+        </div>
+
+    </div>
+</div>
+
+<script>
+window.showToast = function(msg){
+
+    const t = document.getElementById("live-toast");
+    if(!t) return;
+
+    document.getElementById("toast-text").textContent = msg;
+
+    t.classList.remove("opacity-0");
+    t.classList.add("opacity-100");
+
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(()=>{
+        t.classList.remove("opacity-100");
+        t.classList.add("opacity-0");
+    },2400);
+}
+</script>
+
+<script>
+window.updateCartBadge = function(count){
+
+    const el = document.getElementById("cart-count");
+    if(!el) return;
+
+    el.textContent = count;
+
+    if(count>0){
+        el.classList.remove("hidden");
+    }else{
+        el.classList.add("hidden");
+    }
+
+    // micro animação
+    el.parentElement.classList.add("scale-110");
+    setTimeout(()=>el.parentElement.classList.remove("scale-110"),150);
+}
+</script>
+
 </body>
 </html>
