@@ -59,6 +59,28 @@
         transform:translateY(-2px) scale(1.05);
     }
     
+    .glass-card{
+    background:rgba(255,255,255,.05);
+    backdrop-filter:blur(28px);
+    border:1px solid rgba(255,255,255,.20);
+    box-shadow:0 0 60px rgba(0,0,0,.8);
+    border-radius:28px;
+    position:relative;
+    overflow:hidden;
+    }
+
+    .glass-card::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        background:linear-gradient(to bottom,
+            rgba(255,255,255,.20),
+            rgba(255,255,255,.05),
+            transparent);
+        opacity:.35;
+    }
+    
     </style>
     </head>
 

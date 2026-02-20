@@ -10,14 +10,7 @@ require_once ROOT."/views/layout/header.php";
 
 <div class="min-h-[70vh] flex items-center justify-center">
 
-    <div class="
-    w-full max-w-md
-    bg-zinc-900/70 backdrop-blur-3xl
-    border border-white/10
-    shadow-[0_25px_80px_rgba(0,0,0,0.65)]
-    rounded-uw
-    p-8
-    ">
+    <div class="w-full max-w-md glass-card p-8">
 
         <form method="POST" action="/ultraware_gaming/routes.php?action=register" class="space-y-6">
 
@@ -30,30 +23,50 @@ require_once ROOT."/views/layout/header.php";
                 <label class="text-sm text-zinc-400">Nome</label>
                 <input type="text" name="nome" required
                 value="<?= htmlspecialchars($old['nome'] ?? '') ?>"
-                class="w-full px-5 py-3 rounded-full bg-black/30 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+                class="w-full px-5 py-3 rounded-full
+                bg-white/5 backdrop-blur-xl
+                border border-white/15
+                focus:border-primary focus:ring-0
+                transition placeholder:text-zinc-400">
             </div>
 
             <div class="space-y-2">
                 <label class="text-sm text-zinc-400">Email</label>
                 <input type="email" name="email" required
                 value="<?= htmlspecialchars($old['email'] ?? '') ?>"
-                class="w-full px-5 py-3 rounded-full bg-black/30 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+                class="w-full px-5 py-3 rounded-full
+                bg-white/5 backdrop-blur-xl
+                border border-white/15
+                focus:border-primary focus:ring-0
+                transition placeholder:text-zinc-400">
             </div>
 
             <div class="space-y-2">
                 <label class="text-sm text-zinc-400">Senha</label>
                 <input type="password" name="senha" required
-                class="w-full px-5 py-3 rounded-full bg-black/30 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+                class="w-full px-5 py-3 rounded-full
+                bg-white/5 backdrop-blur-xl
+                border border-white/15
+                focus:border-primary focus:ring-0
+                transition placeholder:text-zinc-400">
             </div>
 
             <div class="space-y-2">
                 <label class="text-sm text-zinc-400">Confirmar senha</label>
                 <input type="password" name="confirmar" required
-                class="w-full px-5 py-3 rounded-full bg-black/30 border border-white/10 focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+                class="w-full px-5 py-3 rounded-full
+                bg-white/5 backdrop-blur-xl
+                border border-white/15
+                focus:border-primary focus:ring-0
+                transition placeholder:text-zinc-400">
             </div>
 
             <button type="submit"
-            class="w-full bg-primary hover:bg-blue-500 text-white py-3 rounded-full font-semibold transition shadow-[0_12px_35px_rgba(59,130,246,0.45)] hover:shadow-[0_18px_50px_rgba(59,130,246,0.6)]">
+            class="w-full bg-primary hover:bg-blue-500
+            text-white py-3 rounded-full font-semibold
+            transition
+            shadow-[0_15px_40px_rgba(59,130,246,0.45)]
+            hover:shadow-[0_20px_55px_rgba(59,130,246,0.65)]">
                 Criar conta
             </button>
 

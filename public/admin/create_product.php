@@ -171,4 +171,3 @@ function removeImage(index, i){
 }
 </script>
 
-<?php require_once ROOT . "/views/layout/footer.php"; ?>
