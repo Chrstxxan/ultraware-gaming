@@ -7,8 +7,34 @@
 
 <?php foreach ($products as $p): ?>
 
+<div class="relative group">
+
+    <?php
+    require_once ROOT."/app/helpers/favorites.php";
+
+    $isFav = isLogged()
+        ? isFavorite($pdo,$_SESSION['user']['id'],$p['id'])
+        : false;
+
+    $count = favoritesCount($pdo,$p['id']);
+    ?>
+
+    <!-- FAVORITO -->
+    <button
+    onclick="event.preventDefault();event.stopPropagation();toggleFavorite(<?= $p['id'] ?>,this)"
+    class="fav-btn <?= $isFav?'active':'' ?>">
+
+    <svg viewBox="0 0 24 24" fill="currentColor" class="fav-icon">
+    <path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
+    </svg>
+
+    <span class="fav-count"><?= $count ?></span>
+
+    </button>
+
+    <!-- LINK DO PRODUTO -->
     <a href="/ultraware_gaming/public/product.php?id=<?= $p['id'] ?>"
-       class="block group">
+       class="block">
 
         <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-lg
         hover:border-primary transition h-full flex flex-col">
@@ -25,7 +51,6 @@
             </p>
 
             <div class="flex justify-between items-center mt-auto">
-
                 <span class="text-primary text-xl font-bold">
                     R$ <?= number_format($p['preco'], 2, ',', '.') ?>
                 </span>
@@ -36,12 +61,12 @@
                 group-hover:bg-blue-500 transition">
                     Ver produto
                 </span>
-
             </div>
 
         </div>
-
     </a>
+
+</div>
 
 <?php endforeach; ?>
 

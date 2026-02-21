@@ -639,4 +639,36 @@ case "forgot_reset":
     exit;
 
 break;
+
+
+
+case "toggle_favorite":
+
+require_once __DIR__."/app/helpers/auth.php";
+require_once __DIR__."/app/helpers/favorites.php";
+requireLogin();
+
+$userId=$_SESSION['user']['id'];
+$productId=(int)$_POST['product_id'];
+
+$stmt=$pdo->prepare("SELECT 1 FROM favorites WHERE user_id=? AND product_id=?");
+$stmt->execute([$userId,$productId]);
+
+if($stmt->fetch()){
+    $pdo->prepare("DELETE FROM favorites WHERE user_id=? AND product_id=?")
+        ->execute([$userId,$productId]);
+    $favorited=false;
+}else{
+    $pdo->prepare("INSERT INTO favorites(user_id,product_id) VALUES(?,?)")
+        ->execute([$userId,$productId]);
+    $favorited=true;
+}
+
+$count=favoritesCount($pdo,$productId);
+
+echo json_encode([
+    "favorited"=>$favorited,
+    "count"=>$count
+]);
+exit;
 }

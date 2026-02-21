@@ -40,11 +40,31 @@ require_once ROOT . "/views/layout/header.php";
 <div class="grid md:grid-cols-2 gap-10">
 
     <!-- GALERIA -->
-    <div>
+    <div class="relative">
 
         <img id="mainImage"
         src="/ultraware_gaming/public/uploads/<?= $images[0]['path'] ?? 'no-image.png' ?>"
         class="w-full rounded-2xl border border-zinc-800 mb-4">
+
+        <?php
+        require_once ROOT."/app/helpers/favorites.php";
+
+        $isFav = isLogged()
+            ? isFavorite($pdo,$_SESSION['user']['id'],$product['id'])
+            : false;
+
+        $count = favoritesCount($pdo,$product['id']);
+        ?>
+
+        <button onclick="toggleFavorite(<?= $product['id'] ?>,this)"
+        class="fav-btn <?= $isFav?'active':'' ?>">
+
+            <svg viewBox="0 0 24 24" class="fav-icon">
+                <path d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
+            </svg>
+
+            <span class="fav-count"><?= $count ?></span>
+        </button>
 
         <div id="thumbs" class="flex gap-3 overflow-x-auto">
             <?php foreach($images as $img): ?>

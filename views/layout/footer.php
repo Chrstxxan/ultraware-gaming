@@ -100,5 +100,38 @@ window.updateCartBadge = function(count){
 }
 </script>
 
+<script>
+window.toggleFavorite = async function(productId, btn){
+
+    try{
+        const res = await fetch("/ultraware_gaming/routes.php?action=toggle_favorite",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded",
+                "X-Requested-With":"XMLHttpRequest"
+            },
+            body:"product_id="+productId
+        });
+
+        if(res.status===401){
+            window.location="/ultraware_gaming/public/login.php";
+            return;
+        }
+
+        const data = await res.json();
+
+        // alterna classe visual
+        btn.classList.toggle("active", data.favorited);
+
+        // atualiza contador
+        const counter = btn.querySelector(".fav-count");
+        if(counter) counter.textContent = data.count;
+
+    }catch(e){
+        console.error("Erro favorito:", e);
+    }
+}
+</script>
+
 </body>
 </html>

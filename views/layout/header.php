@@ -35,6 +35,36 @@
     }
     </script>
 
+    <style type="text/tailwindcss">
+    @layer components {
+
+    .fav-btn{
+    @apply absolute top-3 right-3 z-20 flex items-center gap-1
+    px-2 py-1 rounded-full
+    bg-black/50 backdrop-blur-md
+    border border-white/10
+    transition duration-200;
+    }
+
+    .fav-btn:hover{
+    @apply scale-110 bg-primary/30;
+    }
+
+    .fav-icon{
+    @apply w-5 h-5 text-white transition;
+    }
+
+    .fav-btn.active .fav-icon{
+    @apply text-primary drop-shadow-[0_0_6px_rgba(59,130,246,0.9)];
+    }
+
+    .fav-count{
+    @apply text-xs text-white/80;
+    }
+
+    }
+    </style>
+
     <style>
     .nav-open > .dropdown-menu{
         opacity:1!important;
@@ -103,8 +133,11 @@
     .action-btn.red:hover{
     background:#dc2626;
     }
-    
+
     </style>
+    
+    <link rel="stylesheet" href="/ultraware_gaming/public/css/style.css">
+
     </head>
 
     <body class="bg-zinc-950 text-white pt-28">
@@ -250,6 +283,15 @@
                 fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round"
                     d="M21 8.25l-9-4.5-9 4.5m18 0v7.5a2.25 2.25 0 01-1.13 1.95L12 21.75l-7.87-4.05A2.25 2.25 0 013 15.75v-7.5m18 0L12 12.75 3 8.25"/>
+                </svg>
+            </a>
+
+            <!-- favoritos -->
+            <a href="/ultraware_gaming/public/favorites.php" class="dock-btn pointer-events-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 2l3 7 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>
                 </svg>
             </a>
 

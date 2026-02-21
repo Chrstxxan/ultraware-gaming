@@ -60,3 +60,61 @@ button:hover {
     border-radius: 6px;
     margin-bottom: 15px;
 }
+
+/* ===== FAVORITE BUTTON ===== */
+
+.fav-btn{
+position:absolute;
+top:14px;
+right:14px;
+display:flex;
+align-items:center;
+gap:6px;
+padding:6px 10px;
+border-radius:999px;
+background:rgba(24,24,27,.55);
+backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.12);
+transition:.25s;
+z-index:5;
+cursor:pointer;
+}
+
+/* hover */
+.fav-btn:hover{
+transform:scale(1.07);
+background:rgba(59,130,246,.18);
+}
+
+/* ícone padrão */
+.fav-icon{
+width:20px;
+height:20px;
+stroke:#ffffff;
+stroke-width:1.7;
+fill:transparent;
+transition:.25s;
+}
+
+/* contador */
+.fav-count{
+font-size:12px;
+color:#ffffff;
+opacity:.9;
+}
+
+/* favoritado */
+.fav-btn.active{
+background:rgba(59,130,246,.18);
+border-color:rgba(59,130,246,.35);
+}
+
+.fav-btn.active .fav-icon{
+fill:#3b82f6;
+stroke:#3b82f6;
+filter:drop-shadow(0 0 6px rgba(59,130,246,.7));
+}
+
+.fav-btn.active .fav-count{
+color:#3b82f6;
+}
