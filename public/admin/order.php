@@ -306,3 +306,5 @@ function toggleStatusMenu(){
 document.getElementById('statusMenu').classList.toggle('hidden');
 }
 </script>
+
+<?php require_once ROOT."/views/admin/layout_end.php"; ?>

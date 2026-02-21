@@ -80,3 +80,5 @@ require_once ROOT . "/views/admin/layout.php";
     </div>
 
 </div>
+
+<?php require_once ROOT."/views/admin/layout_end.php"; ?>
