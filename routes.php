@@ -382,6 +382,22 @@ $dados['cidade'],
 $dados['estado']
 ]);
 
+/* ================= SALVAR FRETE ================= */
+
+$stmt = $pdo->prepare("
+INSERT INTO order_shipping
+(order_id, service_name, service_code, price, delivery_days)
+VALUES (?,?,?,?,?)
+");
+
+$stmt->execute([
+    $orderId,
+    $shipping['nome'],
+    'checkout',
+    $shipping['valor'],
+    $shipping['prazo']
+]);
+
 /* ================= GERAR PAGAMENTO ================= */
 
 $pref = criarPreferenciaMP($orderId, $total);

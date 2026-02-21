@@ -45,9 +45,6 @@ tailwind.config = {
 
         <nav class="space-y-3 text-sm">
 
-            <a href="/ultraware_gaming/public/admin/products.php"
-            class="block hover:text-primary">Produtos</a>
-
             <a href="/ultraware_gaming/public/admin/create_product.php"
             class="block hover:text-primary">Cadastrar produto</a>
 

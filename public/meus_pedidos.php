@@ -4,6 +4,7 @@ require_once "../app/config/path.php";
 require_once ROOT."/app/config/database.php";
 require_once ROOT."/app/helpers/session.php";
 require_once ROOT."/app/helpers/auth.php";
+require_once ROOT."/app/helpers/order_status.php";
 
 requireLogin();
 
@@ -36,6 +37,7 @@ require_once ROOT."/views/layout/header.php";
 </div>
 
 <?php else: foreach($orders as $o): ?>
+<?php $publicStatus = getPublicOrderStatus($pdo, $o['id']); ?>
 
 <a href="/ultraware_gaming/public/pedido.php?id=<?= $o['id'] ?>"
 class="block bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-uw p-8
@@ -60,23 +62,29 @@ hover:border-primary hover:shadow-[0_0_0_1px_rgba(59,130,246,0.4)] transition">
     </div>
 
     <div class="text-sm font-medium
-    <?php
-    switch($o['payment_status']){
-        case 'paid': echo 'text-green-400'; break;
-        case 'pending': echo 'text-yellow-400'; break;
-        case 'failed': echo 'text-red-400'; break;
-        default: echo 'text-zinc-400';
-    }
-    ?>">
         <?php
-        switch($o['payment_status']){
-            case 'paid': echo 'Pagamento aprovado'; break;
-            case 'pending': echo 'Aguardando pagamento'; break;
-            case 'failed': echo 'Pagamento recusado'; break;
-            default: echo $o['payment_status'];
+        switch($publicStatus){
+            case 'novo': echo 'text-yellow-400'; break;
+            case 'pago': echo 'text-blue-400'; break;
+            case 'preparando': echo 'text-indigo-400'; break;
+            case 'enviado': echo 'text-purple-400'; break;
+            case 'entregue': echo 'text-green-400'; break;
+            case 'cancelado': echo 'text-red-400'; break;
+            default: echo 'text-zinc-400';
+        }
+        ?>">
+        <?php
+        switch($publicStatus){
+            case 'novo': echo 'Aguardando pagamento'; break;
+            case 'pago': echo 'Pagamento aprovado'; break;
+            case 'preparando': echo 'Em preparação'; break;
+            case 'enviado': echo 'Enviado'; break;
+            case 'entregue': echo 'Entregue'; break;
+            case 'cancelado': echo 'Cancelado'; break;
+            default: echo $publicStatus;
         }
         ?>
-    </div>
+        </div>
 
 </div>
 

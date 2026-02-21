@@ -4,6 +4,7 @@ require_once "../app/config/path.php";
 require_once ROOT."/app/config/database.php";
 require_once ROOT."/app/helpers/session.php";
 require_once ROOT."/app/helpers/auth.php";
+require_once ROOT."/app/helpers/order_status.php";
 
 requireLogin();
 
@@ -18,6 +19,8 @@ $order = $stmt->fetch(PDO::FETCH_ASSOC);
 if(!$order) die("Pedido não encontrado");
 if(!$isAdmin && $order['user_id'] != $userId) die("Acesso negado");
 
+$publicStatus = getPublicOrderStatus($pdo, $orderId);
+
 $stmt=$pdo->prepare("
 SELECT oi.qtd,oi.preco_unitario,v.nome_variacao,p.nome
 FROM order_items oi
@@ -31,6 +34,10 @@ $items=$stmt->fetchAll(PDO::FETCH_ASSOC);
 $stmt=$pdo->prepare("SELECT * FROM order_addresses WHERE order_id=?");
 $stmt->execute([$orderId]);
 $addr=$stmt->fetch(PDO::FETCH_ASSOC);
+
+$stmt=$pdo->prepare("SELECT * FROM order_tracking WHERE order_id=?");
+$stmt->execute([$orderId]);
+$tracking=$stmt->fetch(PDO::FETCH_ASSOC);
 
 require_once ROOT."/views/layout/header.php";
 ?>
@@ -105,31 +112,54 @@ R$ <?= number_format($order['total'],2,',','.') ?>
 
 <div class="bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-uw p-8">
 
-<h2 class="text-xl font-semibold mb-4">Status do pagamento</h2>
+<h2 class="text-xl font-semibold mb-4">Status do pedido</h2>
 
 <div class="text-lg font-semibold
 <?php
-switch($order['payment_status']){
-    case 'paid': echo 'text-green-400'; break;
-    case 'pending': echo 'text-yellow-400'; break;
-    case 'failed': echo 'text-red-400'; break;
+switch($publicStatus){
+    case 'novo': echo 'text-yellow-400'; break;
+    case 'pago': echo 'text-blue-400'; break;
+    case 'preparando': echo 'text-indigo-400'; break;
+    case 'enviado': echo 'text-purple-400'; break;
+    case 'entregue': echo 'text-green-400'; break;
+    case 'cancelado': echo 'text-red-400'; break;
     default: echo 'text-zinc-400';
 }
 ?>
 ">
 
 <?php
-switch($order['payment_status']){
-    case 'paid': echo 'Pagamento aprovado'; break;
-    case 'pending': echo 'Aguardando pagamento'; break;
-    case 'failed': echo 'Pagamento recusado'; break;
-    default: echo $order['payment_status'];
+switch($publicStatus){
+    case 'novo': echo 'Aguardando pagamento'; break;
+    case 'pago': echo 'Pagamento aprovado'; break;
+    case 'preparando': echo 'Em preparação'; break;
+    case 'enviado': echo 'Enviado'; break;
+    case 'entregue': echo 'Entregue'; break;
+    case 'cancelado': echo 'Cancelado'; break;
+    default: echo $publicStatus;
 }
 ?>
 
 </div>
 
 </div>
+<?php if(($publicStatus === 'enviado' || $publicStatus === 'entregue') && $tracking): ?>
+
+<div class="bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-uw p-8 mt-8">
+
+<h2 class="text-xl font-semibold mb-4">Rastreamento</h2>
+
+<p class="text-zinc-300 mb-2">
+Transportadora: <?= htmlspecialchars($tracking['carrier']) ?>
+</p>
+
+<p class="text-primary font-semibold text-lg">
+<?= htmlspecialchars($tracking['tracking_code']) ?>
+</p>
+
+</div>
+
+<?php endif; ?>
 
 <div class="bg-zinc-900/70 backdrop-blur-3xl border border-white/10 rounded-uw p-8">
 

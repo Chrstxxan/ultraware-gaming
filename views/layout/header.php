@@ -81,6 +81,29 @@
         opacity:.35;
     }
     
+    .action-btn{
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:14px;
+    transition:.2s;
+    }
+
+    .action-btn.blue{
+    background:#3b82f6;
+    }
+
+    .action-btn.blue:hover{
+    background:#2563eb;
+    }
+
+    .action-btn.red{
+    background:#ef4444;
+    }
+
+    .action-btn.red:hover{
+    background:#dc2626;
+    }
+    
     </style>
     </head>
 
