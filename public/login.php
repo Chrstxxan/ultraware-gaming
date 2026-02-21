@@ -1,11 +1,32 @@
 <?php
+require_once "../app/helpers/session.php";  
 require_once "../app/config/path.php";
+require_once ROOT."/app/helpers/flash.php";
+$flash = getFlash();
+
 require_once ROOT."/views/layout/header.php";
 ?>
 
 <div class="min-h-[70vh] flex items-center justify-center">
 
     <div class="w-full max-w-md glass-card p-8">
+        <?php if(isset($flash['type']) && $flash['type'] === 'error'): ?>
+        <div role="alert"
+        class="mb-4 text-center text-sm
+        bg-red-500/10 border border-red-400/25
+        text-red-300 rounded-xl py-3 px-4">
+            <?= htmlspecialchars($flash['message']) ?>
+        </div>
+        <?php endif; ?>
+
+        <?php if(isset($flash['type']) && $flash['type'] === 'success'): ?>
+        <div role="status"
+        class="mb-4 text-center text-sm
+        bg-green-500/10 border border-green-400/20
+        text-green-300 rounded-xl py-3 px-4">
+            <?= htmlspecialchars($flash['message']) ?>
+        </div>
+        <?php endif; ?>
 
         <form method="POST" action="/ultraware_gaming/routes.php?action=login" class="space-y-6">
 
@@ -16,7 +37,9 @@ require_once ROOT."/views/layout/header.php";
 
             <div class="space-y-2">
                 <label class="text-sm text-zinc-400">Email</label>
-                <input type="email" name="email" required
+                <input type="email" name="email"
+                value="<?= htmlspecialchars($flash['data']['email'] ?? '') ?>"
+                required autocomplete="username"
                 class="w-full px-5 py-3 rounded-full
                 bg-white/5 backdrop-blur-xl
                 border border-white/15
@@ -26,7 +49,7 @@ require_once ROOT."/views/layout/header.php";
 
             <div class="space-y-2">
                 <label class="text-sm text-zinc-400">Senha</label>
-                <input type="password" name="senha" required
+                <input type="password" name="senha" required autocomplete="current-password"
                 class="w-full px-5 py-3 rounded-full
                 bg-white/5 backdrop-blur-xl
                 border border-white/15

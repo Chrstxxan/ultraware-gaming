@@ -15,57 +15,94 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 require_once ROOT . "/views/admin/layout.php";
 ?>
 
-<h2 class="text-2xl font-semibold mb-6">Cadastrar Produto</h2>
+<div class="glass-card p-8 space-y-10">
 
-<?php if(isset($_GET['success'])): ?>
-<?php require_once ROOT . "/views/components/toast.php"; ?>
-<?php endif; ?>
+    <div class="space-y-2">
+        <h2 class="text-2xl font-semibold">Cadastrar Produto</h2>
+        <p class="text-zinc-400 text-sm">
+            Preencha as informações e adicione variações ao produto
+        </p>
+    </div>
 
-<form method="POST" action="/ultraware_gaming/routes.php?action=store_product"
-      enctype="multipart/form-data" class="space-y-6">
+    <?php if(isset($_GET['success'])): ?>
+        <?php require_once ROOT . "/views/components/toast.php"; ?>
+    <?php endif; ?>
 
-    <!-- DADOS DO PRODUTO -->
-    <input name="nome" placeholder="Nome do produto"
-    required
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
+    <form method="POST"
+          action="/ultraware_gaming/routes.php?action=store_product"
+          enctype="multipart/form-data"
+          class="space-y-8">
 
-    <textarea name="descricao" placeholder="Descrição completa"
-    required
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2"></textarea>
+        <!-- DADOS DO PRODUTO -->
+        <div class="space-y-6">
 
-    <!-- SELECT DE CATEGORIA -->
-    <select name="category_id" required
-    class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2
-    focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-400">Nome do produto</label>
+                <input name="nome" required
+                class="w-full h-12 px-5 rounded-full
+                bg-black/30 border border-white/10
+                focus:border-primary focus:ring-2 focus:ring-primary/20
+                transition">
+            </div>
 
-        <option value="">Selecione a categoria</option>
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-400">Descrição</label>
+                <textarea name="descricao" required
+                class="w-full min-h-[120px] max-h-[300px] px-5 py-3
+                rounded-2xl bg-black/30 border border-white/10
+                focus:border-primary focus:ring-2 focus:ring-primary/20
+                transition resize-y"></textarea>
+            </div>
 
-        <?php foreach($categories as $c): ?>
-            <option value="<?= $c['id'] ?>">
-                <?= htmlspecialchars($c['nome']) ?>
-            </option>
-        <?php endforeach; ?>
+            <div class="space-y-2">
+                <label class="text-sm text-zinc-400">Categoria</label>
+                <select name="category_id" required
+                class="w-full h-12 px-5 rounded-full
+                bg-black/30 border border-white/10
+                focus:border-primary focus:ring-2 focus:ring-primary/20
+                transition">
 
-    </select>
+                    <option value="">Selecione a categoria</option>
 
+                    <?php foreach($categories as $c): ?>
+                        <option value="<?= $c['id'] ?>">
+                            <?= htmlspecialchars($c['nome']) ?>
+                        </option>
+                    <?php endforeach; ?>
 
-    <!-- VARIAÇÕES -->
-    <h3 class="text-lg font-semibold mt-6">Variações</h3>
+                </select>
+            </div>
 
-    <div id="variants" class="space-y-6"></div>
+        </div>
 
-    <button type="button"
-    onclick="addVariant()"
-    class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-uw transition">
-        + Adicionar variação
-    </button>
+        <!-- VARIAÇÕES -->
+        <div class="space-y-6">
+            <h3 class="text-lg font-semibold">Variações</h3>
 
-    <!-- BOTÃO -->
-    <button class="bg-primary hover:bg-blue-500 text-white px-6 py-3 rounded-uw font-semibold transition">
-        Salvar Produto
-    </button>
+            <div id="variants" class="space-y-6"></div>
 
-</form>
+            <button type="button"
+            onclick="addVariant()"
+            class="bg-white/5 backdrop-blur-xl border border-white/15
+            hover:bg-primary/20 px-6 h-11 rounded-full transition">
+                + Adicionar variação
+            </button>
+        </div>
+
+        <!-- BOTÃO -->
+        <div class="pt-4">
+            <button
+            class="bg-primary hover:bg-blue-500 text-white
+            px-8 py-3 rounded-full font-semibold
+            transition shadow-[0_12px_35px_rgba(59,130,246,0.45)]
+            hover:shadow-[0_18px_50px_rgba(59,130,246,0.6)]">
+                Salvar Produto
+            </button>
+        </div>
+
+    </form>
+
+</div>
 
 
 <script>
@@ -76,47 +113,61 @@ function addVariant(){
     const container = document.getElementById('variants');
 
     container.insertAdjacentHTML('beforeend', `
-        <div class="border border-zinc-800 rounded-uw p-5 space-y-5 bg-zinc-900/40">
+    <div class="bg-white/5 backdrop-blur-2xl border border-white/15
+    rounded-[24px] p-6 space-y-5 shadow-[0_0_40px_rgba(0,0,0,0.4)]">
 
-            <input name="variants[${variantIndex}][nome]"
-            placeholder="Ex: Preto / M / 128GB"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
+        <input name="variants[${variantIndex}][nome]"
+        placeholder="Ex: Preto / M / 128GB"
+        class="w-full h-12 px-5 rounded-full
+        bg-black/30 border border-white/10
+        focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
 
-            <input type="number" step="0.01"
-            name="variants[${variantIndex}][preco]"
-            placeholder="Preço"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
+        <input type="number" step="0.01"
+        name="variants[${variantIndex}][preco]"
+        placeholder="Preço"
+        class="w-full h-12 px-5 rounded-full
+        bg-black/30 border border-white/10
+        focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
 
-            <input type="number"
-            name="variants[${variantIndex}][estoque]"
-            placeholder="Estoque"
-            class="w-full bg-zinc-800 border border-zinc-700 rounded-uw px-4 py-2">
+        <input type="number"
+        name="variants[${variantIndex}][estoque]"
+        placeholder="Estoque"
+        class="w-full h-12 px-5 rounded-full
+        bg-black/30 border border-white/10
+        focus:border-primary focus:ring-2 focus:ring-primary/20 transition">
 
-            <div>
-                <label class="text-sm text-zinc-400">Imagens da variação</label>
+        <div>
+            <label class="text-sm text-zinc-400">Imagens da variação</label>
 
-                <label class="block border border-dashed border-zinc-700 rounded-uw p-8 text-center cursor-pointer hover:border-primary hover:bg-white/5 transition">
+            <label class="block border border-dashed border-white/20
+            rounded-[20px] p-8 text-center cursor-pointer
+            hover:border-primary hover:bg-primary/10 transition">
 
-                    <div class="space-y-2">
-                        <p class="text-zinc-300 text-sm font-medium">Selecionar imagens da variação</p>
-                        <p class="text-xs text-zinc-500">PNG, JPG ou WEBP</p>
-                    </div>
+                <div class="space-y-2">
+                    <p class="text-zinc-300 text-sm font-medium">
+                        Selecionar imagens
+                    </p>
+                    <p class="text-xs text-zinc-500">
+                        PNG, JPG ou WEBP
+                    </p>
+                </div>
 
-                    <input id="input_${variantIndex}"
-                    type="file"
-                    name="variant_images_${variantIndex}[]"
-                    multiple
-                    accept="image/*"
-                    class="hidden"
-                    onchange="previewImages(event, ${variantIndex})">
+                <input id="input_${variantIndex}"
+                type="file"
+                name="variant_images_${variantIndex}[]"
+                multiple
+                accept="image/*"
+                class="hidden"
+                onchange="previewImages(event, ${variantIndex})">
 
-                </label>
+            </label>
 
-                <div id="preview_${variantIndex}" class="flex flex-wrap gap-3 mt-4"></div>
-            </div>
-
+            <div id="preview_${variantIndex}"
+            class="flex flex-wrap gap-3 mt-4"></div>
         </div>
-    `);
+
+    </div>
+`);
 
     variantIndex++;
 }

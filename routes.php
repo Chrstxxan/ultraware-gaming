@@ -53,7 +53,7 @@ case "login":
         exit;
 
     }else{
-        flash('error',"Email ou senha inválidos");
+        flash('error',"Email ou senha inválidos", ['email'=>$email]);
         header("Location: /ultraware_gaming/public/login.php");
         exit;
     }
@@ -562,4 +562,65 @@ session_destroy();
 header("Location: /ultraware_gaming/public/index.php");
 exit;
 
+
+
+case "forgot_check":
+
+    $email = $_POST['email'] ?? null;
+
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email=?");
+    $stmt->execute([$email]);
+
+    $user = $stmt->fetch();
+
+    if(!$user){
+    flash('error','Email não encontrado');
+    header("Location: /ultraware_gaming/public/forgot.php");
+    exit;
+}
+
+    $_SESSION['reset_user'] = $user['id'];
+    $_SESSION['reset_time'] = time();
+
+    header("Location: /ultraware_gaming/public/forgot_reset.php");
+    exit;
+break;
+
+
+
+case "forgot_reset":
+
+    if(
+        !isset($_SESSION['reset_user']) ||
+        !isset($_SESSION['reset_time']) ||
+        time() - $_SESSION['reset_time'] > 600
+    ){
+        unset($_SESSION['reset_user'], $_SESSION['reset_time']);
+
+        flash('error','Tempo para redefinir senha expirou');
+        header("Location: /ultraware_gaming/public/forgot.php");
+        exit;
+    }
+
+    $senha = $_POST['senha'] ?? '';
+    $confirmar = $_POST['confirmar'] ?? '';
+
+    if($senha !== $confirmar){
+        flash('error','As senhas não coincidem');
+        header("Location: /ultraware_gaming/public/forgot_reset.php");
+        exit;
+    }
+
+    $hash = password_hash($senha, PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare("UPDATE users SET senha=? WHERE id=?");
+    $stmt->execute([$hash, $_SESSION['reset_user']]);
+
+    unset($_SESSION['reset_user'], $_SESSION['reset_time']);
+
+    flash('success','Senha alterada com sucesso!');
+    header("Location: /ultraware_gaming/public/login.php");
+    exit;
+
+break;
 }
