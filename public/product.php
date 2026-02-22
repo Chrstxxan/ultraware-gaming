@@ -2,12 +2,15 @@
 require_once "../app/config/path.php";
 require_once ROOT . "/app/config/database.php";
 require_once ROOT . "/app/helpers/session.php";
+require_once ROOT . "/app/models/Product.php";
 
 $id = $_GET['id'] ?? null;
 
 $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
 $stmt->execute([$id]);
 $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$related = Product::recommended($pdo, $product['id'], 8);
 
 if(!$product) die("Produto não encontrado");
 
@@ -191,5 +194,55 @@ async function addCart(){
 }
 
 </script>
+
+<?php if(!empty($related)): ?>
+
+<div class="mt-20">
+
+<h2 class="text-2xl font-semibold mb-6">
+Clientes também gostaram
+</h2>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+
+<?php foreach ($related as $p): ?>
+
+<a href="/ultraware_gaming/public/product.php?id=<?= $p['id'] ?>"
+class="block group relative">
+
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-lg
+    hover:border-primary transition h-full flex flex-col">
+
+        <?php if($p['img']): ?>
+            <img src="/ultraware_gaming/public/uploads/<?= $p['img'] ?>"
+            class="h-32 w-full object-contain mb-3">
+        <?php endif; ?>
+
+        <h3 class="text-lg font-semibold"><?= $p['nome'] ?></h3>
+
+        <div class="mt-auto space-y-3">
+
+            <span class="text-primary text-xl font-bold block">
+                R$ <?= number_format($p['preco'],2,',','.') ?>
+            </span>
+
+            <span class="bg-primary text-white px-4 py-2 rounded-full 
+            text-sm font-medium inline-block text-center">
+                Ver produto
+            </span>
+
+        </div>
+
+    </div>
+
+</a>
+
+<?php endforeach; ?>
+
+</div>
+
+</div>
+
+<?php endif; ?>
 
 <?php require_once ROOT . "/views/layout/footer.php"; ?>
